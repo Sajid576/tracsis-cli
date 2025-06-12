@@ -25,6 +25,9 @@ A command-line interface for interacting with the Tracsis API.
 # Login to Tracsis API
 python tracsis_cli.py login
 
+# Log work and capture screenshot
+python tracsis_cli.py log <task_id> <status>
+```
 
 ## Troubleshooting
 
