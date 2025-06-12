@@ -6,7 +6,7 @@ A CLI tool for interacting with the Tracsis API
 
 import argparse
 import sys
-from command_handlers import handle_login, handle_task_list, handle_task_logs,handle_snap
+from command_handlers import handle_login, handle_task_list, handle_task_logs,handle_snap,handle_git_commits
 
 def main():
     """Main entry point for the CLI"""
@@ -86,6 +86,21 @@ def main():
         help='Task ID to take screenshot for'
     )
     snap_parser.set_defaults(func=handle_snap)
+    
+    # Git commits command
+    git_parser = subparsers.add_parser('git-logs', help='Fetch git commits for a username in specified path')
+    git_parser.add_argument(
+        'username',
+        type=str,
+        help='Git username to fetch commits for'
+    )
+    git_parser.add_argument(
+        '--path',
+        type=str,
+        default='./',
+        help='Path to search for git repositories (default: current directory)'
+    )
+    git_parser.set_defaults(func=handle_git_commits)
     
     # Parse arguments
     args = parser.parse_args()

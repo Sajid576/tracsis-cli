@@ -300,3 +300,58 @@ def handle_snap(args):
         raise
     finally:
         driver.quit()
+
+
+def handle_git_commits(args):
+    """Handle git commits command"""
+    from datetime import datetime
+    import subprocess
+    import os
+    
+    username = args.username
+    path = os.path.abspath(args.path)  # Get absolute path
+    date = datetime.now().strftime('%Y-%m-%d')
+    
+    print(f"Fetching git commits for user {username} in {path} on {date}...")
+    
+    try:
+        # Verify path exists
+        if not os.path.exists(path):
+            print(f"Error: Path {path} does not exist")
+            sys.exit(1)
+            
+        # Find all git repositories in subdirectories
+        find_cmd = f"find {path} -type d -name .git | sed 's/\.git$//'"
+        repos = subprocess.run(find_cmd, shell=True, check=True, capture_output=True, text=True).stdout.splitlines()
+        
+        if not repos:
+            print(f"No git repositories found in {path}")
+            return
+            
+        original_dir = os.getcwd()  # Save original directory
+        
+        for repo in repos:
+            repo_path = os.path.abspath(repo)  # Get absolute path
+            print(f"\nCommits in {repo_path}:")
+            
+            try:
+                os.chdir(repo_path)
+                
+                # Get commits for this repository
+                cmd = f"git log --all --author={username} --since='{date} 00:00:00' --until='{date} 23:59:59' --pretty=format:'%h - %an, %ar : %s'"
+                result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
+                if(len(result.stdout)>0):
+                    commit_message = result.stdout.split(':')[1].strip()
+                    print(commit_message)
+                
+            except FileNotFoundError:
+                print(f"Warning: Could not access repository at {repo_path}")
+                continue
+                
+            finally:
+                # Always return to original directory
+                os.chdir(original_dir)
+            
+    except subprocess.CalledProcessError as e:
+        print(f"Error fetching git commits: {e.stderr}")
+        sys.exit(1)
