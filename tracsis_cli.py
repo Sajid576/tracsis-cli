@@ -6,14 +6,14 @@ A CLI tool for interacting with the Tracsis API
 
 import argparse
 import sys
-from command_handlers import handle_login, handle_task_list, handle_task_logs, handle_snap, handle_gen_log, handle_set_credentials
+from command_handlers import handle_login, handle_task_list, handle_task_logs, handle_snap, handle_gen_log, handle_create_task,handle_set_credentials
 
 def create_login_parser(subparsers):
     login_parser = subparsers.add_parser('login', help='Login to Tracsis API')
     login_parser.set_defaults(func=handle_login)
     return login_parser
 
-def create_tasks_parser(subparsers):
+def tasks_list_parser(subparsers):
     task_parser = subparsers.add_parser('tasks', help='Get task list from Tracsis API')
     task_parser.add_argument('--user-id', type=int, default=6010, help='User ID to filter tasks for (default: 6010)')
     task_parser.add_argument('--page', type=int, default=1, help='Page number for pagination (default: 1)')
@@ -47,16 +47,22 @@ def create_set_creds_parser(subparsers):
     set_creds_parser.set_defaults(func=handle_set_credentials)
     return set_creds_parser
 
+def create_task_parser(subparsers):
+    task_parser = subparsers.add_parser('create-task', help='Create a new task')
+    task_parser.set_defaults(func=handle_create_task)
+    return task_parser
+
 def setup_parsers():
     parser = argparse.ArgumentParser(description='Tracsis CLI Tool', prog='tracsis')
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     create_login_parser(subparsers)
-    create_tasks_parser(subparsers)
+    tasks_list_parser(subparsers)
     create_logs_parser(subparsers)
     create_snap_parser(subparsers)
     create_genlog_parser(subparsers)
     create_set_creds_parser(subparsers)
+    create_task_parser(subparsers)  # Add this line
     
     return parser
 

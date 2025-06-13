@@ -87,12 +87,12 @@ class TracsisAPI:
                 "raw_response": response.text
             }
     
-    def get_task_list(self, user_id: int = 6010, page: int = 1, per_page: int = 10) -> Dict[Any, Any]:
+    def get_task_list(self, user_id: int, page: int = 1, per_page: int = 10) -> Dict[Any, Any]:
         """
         Get task list from the Tracsis API
         
         Args:
-            user_id: User ID to filter tasks for (default: 6010)
+            user_id: User ID to filter tasks
             page: Page number for pagination (default: 1)
             per_page: Number of items per page (default: 10)
             
@@ -135,6 +135,48 @@ class TracsisAPI:
                 "status_code": response.status_code,
                 "raw_response": response.text
             }
+
+    def get_my_project_list(self, page: int = 1, per_page: int = 10) -> Dict[Any, Any]:
+        """
+        Get my project list from the Tracsis API
+        """
+        if not self.is_authenticated():
+            return {
+                "error": True,
+                "message": "Not authenticated. Please login first.",
+                "status_code": 401
+            }
+        
+        url = f"{self.BASE_URL}/master-grid/grid-data"
+        payload = {
+            "slug": "pts_active_projects",
+            "extra": {
+            },
+            "page": page,
+            "per_page": per_page,
+            "search_key": {},
+            "search_data": []
+        }
+
+        try:
+            response = self.session.post(url, json=payload)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            return {
+                "error": True,
+                "message": f"Request failed: {str(e)}",
+                "status_code": getattr(e.response, 'status_code', None) if hasattr(e, 'response') else None
+            }
+        except json.JSONDecodeError:
+            return {
+                "error": True,
+                "message": "Invalid JSON response from server",
+                "status_code": response.status_code,
+                "raw_response": response.text
+            }
+
+    
     
     def get_task_logs(self, task_id: int, page: int = 1, per_page: int = 10) -> Dict[Any, Any]:
         """Get logs for a specific task from the Tracsis API
@@ -187,6 +229,50 @@ class TracsisAPI:
                 "raw_response": response.text
             }
     
+    def create_task(self,title:str,user_id:int,delivery_date:str,estimated_hour:float,project_id:int,module_id:int=2305) -> Dict[Any, Any]:
+        """
+        Create a task in the Tracsis API
+
+        Args:
+            title: Task title
+            user_id: Assigned user ID
+            delivery_date: Delivery date in ISO format
+            estimated_hour: Estimated hours for the task
+            project_id: Project ID
+            module_id: Module ID (default: 2305)
+
+        Returns:
+            API response as dictionary
+        """
+        if not self.is_authenticated():
+            return {
+                "error": True,
+                "message": "Not authenticated. Please login first.",
+                "status_code": 401
+            }
+        
+        url = f"{self.BASE_URL}/pts/task"
+        payload = {
+            "task_title": title,
+            "assign_user_id": user_id,
+            "estimated_delivery_date": delivery_date,
+            "estimated_hour": estimated_hour,
+            "project_id": project_id,
+            "module_id": module_id,
+            "sub_task":[]
+        }
+        try:
+            response = self.session.post(url, json=payload)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            return {
+                "error": True,
+                "message": f"Request failed: {str(e)}",
+                "status_code": getattr(e.response, 'status_code', None) if hasattr(e, 'response') else None
+            }
+
+
     def log_task_work(self, task_id: int, status: str, work_title: str, work_date: str, log_hour: float) -> Dict[Any, Any]:
         """Log work for a task
 

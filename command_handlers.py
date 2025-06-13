@@ -79,7 +79,7 @@ def handle_task_list(args):
             sys.exit(1)
         print("Login successful!\n")
     
-    user_id = args.user_id
+    user_id = config['profile_data']['user_id']
     page = args.page
     per_page = args.per_page
     
@@ -388,32 +388,154 @@ def handle_gen_log(args):
         sys.exit(1)
 
 
-def handle_set_credentials(args):
-    """Handle setting credentials in config.json"""
-    import json
-    import getpass
+def handle_create_task(args):
+    """Handle the task creation command"""
+    api = get_api_instance()
     
-    print("\nSetting up credentials for Tracsis CLI")
-    print("--------------------------------------")
+    if not api.check_credentials():
+        print("Error: Invalid or missing credentials in config.json")
+        sys.exit(1)
+        
+    # Check if user is logged in
+    if not api.is_authenticated():
+        print("Not authenticated. Performing login first...")
+        config = load_config()
+        user = config['credentials']['user']
+        password = config['credentials']['password']
+        
+        login_response = api.login(user, password)
+        
+        if login_response.get('error', True):
+            print("Login failed!")
+            print(json.dumps(login_response, indent=2))
+            sys.exit(1)
+        print("Login successful!\n")
     
-    # Get user input
-    email = input("Email: ").strip()
-    password = getpass.getpass("Password: ").strip()
+    # Get projects list
+    projects_response = api.get_my_project_list()
+    if projects_response.get('error'):
+        print('Error fetching projects:')
+        print(json.dumps(projects_response, indent=2))
+        sys.exit(1)
     
-    # Create config data structure
-    config_data = {
-        "credentials": {
-            "user": email,
-            "password": password
-        }
-    }
+    # Extract simplified project list
+    projects = [
+        {'project_id': p['hidden_project_id'], 'project_name': p['project_name']}
+        for p in projects_response.get('data', {}).get('items', [])
+    ]
     
-    # Write to config.json
-    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    # Display projects for selection
+    print("Available Projects:")
+    for i, project in enumerate(projects, 1):
+        print(f"{i}. {project['project_name']} (ID: {project['project_id']})")
+    
+    # Get project selection
+    selected = input("Select project (number): ")
     try:
+        selected_idx = int(selected) - 1
+        if selected_idx < 0 or selected_idx >= len(projects):
+            raise ValueError
+        project_id = projects[selected_idx]['project_id']
+    except ValueError:
+        print("Invalid selection")
+        sys.exit(1)
+    
+    # Get task details
+    title = input("Task title: ")
+    
+    # Date input with simple validation
+    from datetime import datetime
+    while True:
+        date_str = input("Delivery date (YYYY-MM-DD): ")
+        try:
+            delivery_date = datetime.strptime(date_str, '%Y-%m-%d').strftime('%Y-%m-%d')
+            break
+        except ValueError:
+            print("Invalid date format. Please use YYYY-MM-DD")
+    
+    # Hours input with validation
+    while True:
+        hours_str = input("Estimated hours: ")
+        try:
+            estimated_hour = float(hours_str)
+            if estimated_hour <= 0:
+                raise ValueError
+            break
+        except ValueError:
+            print("Invalid hours. Please enter a positive number")
+    
+    # Get user_id from config
+    config = load_config()
+    user_id = config['profile_data']['user_id']
+    
+    # Create task
+    response = api.create_task(
+        title=title,
+        user_id=user_id,
+        delivery_date=delivery_date,
+        estimated_hour=estimated_hour,
+        project_id=project_id
+    )
+    
+    if response.get('error'):
+        print('Error creating task:')
+        print(json.dumps(response, indent=2))
+        sys.exit(1)
+    
+    print("\n✓ Task created successfully!")
+    print(json.dumps(response, indent=2))
+
+
+def handle_set_credentials(args):
+    """Handle setting credentials and fetch profile data"""
+    import getpass
+    import json
+    import os
+    import sys
+
+    api = get_api_instance()
+    try:
+        # Get user input
+        email = input("Email: ").strip()
+        password = getpass.getpass("Password: ").strip()
+        
+        # Create config data structure
+        config_data = {
+            "credentials": {
+                "user": email,
+                "password": password
+            }
+        }
+        
+        # Perform login to get tokens
+        login_response = api.login(email, password)
+        
+        print(json.dumps(login_response, indent=2))
+        if login_response.get('error', True):
+            print("Login failed!")
+            print(json.dumps(login_response, indent=2))
+            sys.exit(1)
+            
+       
+        profile_data = login_response['data']
+        config_data['profile_data'] = {
+                'user_id': profile_data['user_id'],
+                'user_code': profile_data['user_code'],
+                'user_name': profile_data['user_name']
+            }
+        config_data['secret'] = {
+            'access_token': profile_data['access_token'],
+            'refresh_token': profile_data['refresh_token']
+        }
+        
+        # Save config
+        config_path = os.path.join(os.path.dirname(__file__), 'config.json')
         with open(config_path, 'w') as f:
             json.dump(config_data, f, indent=4)
-        print("\n✓ Credentials saved successfully to config.json")
+            
+        print("✓ Credentials and profile data saved successfully!")
+
+
     except Exception as e:
         print(f"\n✗ Error saving credentials: {str(e)}")
         sys.exit(1)
