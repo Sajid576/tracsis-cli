@@ -22,7 +22,7 @@ def tasks_list_parser(subparsers):
     return task_parser
 
 def create_logs_parser(subparsers):
-    logs_parser = subparsers.add_parser('logs', help='Get logs for a specific task')
+    logs_parser = subparsers.add_parser('logs', help='Create logs for a specific task')
     logs_parser.add_argument('task_id', type=int, help='Task ID to fetch logs for')
     logs_parser.add_argument('--page', type=int, default=1, help='Page number for pagination (default: 1)')
     logs_parser.add_argument('--per-page', type=int, default=10, help='Number of items per page (default: 10)')

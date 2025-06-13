@@ -1,12 +1,3 @@
-## Project Structure
-
-tracsis-cli/
-├── venv/                   # Virtual environment (if created)
-├── tracsis_cli.py         # Main CLI script
-├── requirements.txt       # Dependencies
-├── setup.py              # Package setup (optional)
-└── README.md             # Documentation (optional)
-
 ## Project Documentation
 
 # Tracsis CLI Tool
@@ -27,7 +18,7 @@ tracsis-cmd/
 
 You can build and install the CLI tool globally using setuptools. This allows you to run the `tracsis` command from anywhere on your system.
 
-### 1. Build and Install (All Platforms)
+### Build and Install (All Platforms)
 
 #### Using pip (Recommended)
 
@@ -52,12 +43,47 @@ which tracsis
 ```bash
 where tracsis
 ```
+### Usage
+
+```bash
+# Firstly, Set credentials only one time
+tracsis set-creds
+
+# Get task list
+tracsis tasks
+
+# Create logs for a specific task
+tracsis logs <task_id>
+
+# Take screenshot of a task page
+tracsis snap <task_id>
+
+# Fetch git commits for a username
+tracsis genlog <git_username> --path <repo_path>
+
+# Create a new task
+tracsis create-task
+```
+
+## Setup Guide for Development
+
+### Prerequisites
+
+- Python 3.7+
+- Pip (Python package installer)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/tracsis-cli.git
+cd tracsis-cli
+```
 
 ### 2. Install Dependencies
 
-1. Clone/download this project
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run: `python tracsis_cli.py login`
+```bash
+pip install -r requirements.txt
+```
 
 ## Usage
 
@@ -68,7 +94,7 @@ python tracsis_cli.py set-creds
 # Get task list
 python tracsis_cli.py tasks
 
-# Get logs for a specific task
+# Create logs for a specific task
 python tracsis_cli.py logs <task_id>
 
 # Take screenshot of a task page
