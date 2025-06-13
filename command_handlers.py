@@ -300,14 +300,12 @@ def handle_snap(args):
             
         # Final screenshot
         element = driver.find_element(By.CSS_SELECTOR, ".ant-table")
-        desired_height = 1200  # pixels
-        driver.execute_script(f"arguments[0].style.height = '{desired_height}px';", element)
-        driver.execute_script("arguments[0].style.overflow = 'hidden';", element)  # Hide overflow
+       
 
         # Wait for changes to apply
         import time
         time.sleep(1)
-        screenshot_path = f"task_{task_id}_screenshot.png"
+        screenshot_path = f"./snaps/task_{task_id}_screenshot.png"
         element.screenshot(screenshot_path)
         print(f"\nFinal screenshot saved as: {screenshot_path}")
         
