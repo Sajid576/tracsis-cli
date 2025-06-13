@@ -6,7 +6,7 @@ A CLI tool for interacting with the Tracsis API
 
 import argparse
 import sys
-from command_handlers import handle_login, handle_task_list, handle_task_logs,handle_snap,handle_gen_log    
+from command_handlers import handle_login, handle_task_list, handle_task_logs,handle_snap,handle_gen_log,handle_set_credentials
 
 def main():
     """Main entry point for the CLI"""
@@ -102,6 +102,10 @@ def main():
     )
     git_parser.set_defaults(func=handle_gen_log)
     
+    # Set credentials command
+    set_creds_parser = subparsers.add_parser('set-creds', help='Set credentials in config.json')
+    set_creds_parser.set_defaults(func=handle_set_credentials)
+
     # Parse arguments
     args = parser.parse_args()
     
@@ -115,3 +119,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
+   
+   

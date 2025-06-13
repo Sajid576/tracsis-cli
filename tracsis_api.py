@@ -7,6 +7,7 @@ Handles all API interactions with the Tracsis backend
 import requests
 import json
 from typing import Dict, Any
+import os
 
 
 class TracsisAPI:
@@ -230,3 +231,29 @@ class TracsisAPI:
                 "message": f"Request failed: {str(e)}",
                 "status_code": getattr(e.response, 'status_code', None) if hasattr(e, 'response') else None
             }
+
+    def check_credentials(self) -> bool:
+        """Check if config.json has valid credentials structure
+        
+        Returns:
+            bool: True if config has valid structure with user/password, False otherwise
+        """
+        try:
+            config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                
+            if not isinstance(config, dict):
+                return False
+                
+            credentials = config.get('credentials')
+            if not isinstance(credentials, dict):
+                return False
+                
+            user = credentials.get('user')
+            password = credentials.get('password')
+            
+            return bool(user and password)
+            
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
+            return False

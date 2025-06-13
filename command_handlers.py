@@ -34,6 +34,9 @@ def handle_login(args):
     """Handle the login command"""
     api = get_api_instance()
     
+    if not api.check_credentials():
+        print("Error: Invalid or missing credentials in config.json")
+        sys.exit(1)
     # Load credentials from config file
     config = load_config()
     user = config['credentials']['user']
@@ -58,6 +61,9 @@ def handle_task_list(args):
     """Handle the task list command"""
     api = get_api_instance()
     
+    if not api.check_credentials():
+        print("Error: Invalid or missing credentials in config.json")
+        sys.exit(1)
     # Check if user is logged in, if not, perform login first
     if not api.is_authenticated():
         print("Not authenticated. Performing login first...")
@@ -116,7 +122,10 @@ def handle_task_list(args):
 def handle_task_logs(args):
     """Handle the task log command"""
     api = get_api_instance()
-
+    
+    if not api.check_credentials():
+        print("Error: Invalid or missing credentials in config.json")
+        sys.exit(1)
     # Check if user is logged in
     if not api.is_authenticated():
         print("Not authenticated. Performing login first...")
@@ -204,6 +213,13 @@ def setup_autocomplete():
 def handle_snap(args):
     """Handle the snap command with improved login verification"""
     print("\nTaking screenshot...")
+    
+    api = get_api_instance()
+    
+    if not api.check_credentials():
+        print("Error: Invalid or missing credentials in config.json")
+        sys.exit(1)
+    
     task_id = args.task_id
     
     config = load_config()
@@ -371,4 +387,35 @@ def handle_gen_log(args):
         
     except subprocess.CalledProcessError as e:
         print(f"Error fetching git commits: {e.stderr}")
+        sys.exit(1)
+
+
+def handle_set_credentials(args):
+    """Handle setting credentials in config.json"""
+    import json
+    import getpass
+    
+    print("\nSetting up credentials for Tracsis CLI")
+    print("--------------------------------------")
+    
+    # Get user input
+    email = input("Email: ").strip()
+    password = getpass.getpass("Password: ").strip()
+    
+    # Create config data structure
+    config_data = {
+        "credentials": {
+            "user": email,
+            "password": password
+        }
+    }
+    
+    # Write to config.json
+    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    try:
+        with open(config_path, 'w') as f:
+            json.dump(config_data, f, indent=4)
+        print("\n✓ Credentials saved successfully to config.json")
+    except Exception as e:
+        print(f"\n✗ Error saving credentials: {str(e)}")
         sys.exit(1)
