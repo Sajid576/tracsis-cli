@@ -302,11 +302,12 @@ def handle_snap(args):
         driver.quit()
 
 
-def handle_git_commits(args):
+def handle_gen_log(args):
     """Handle git commits command"""
     from datetime import datetime
     import subprocess
     import os
+    import csv
     
     username = args.username
     path = os.path.abspath(args.path)  # Get absolute path
@@ -330,28 +331,44 @@ def handle_git_commits(args):
             
         original_dir = os.getcwd()  # Save original directory
         
-        for repo in repos:
-            repo_path = os.path.abspath(repo)  # Get absolute path
-            print(f"\nCommits in {repo_path}:")
+        # Create CSV file
+        csv_filename = f"git_commits_{username}_{date}.csv"
+        with open(csv_filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['title', 'date', 'log_hour'])
             
-            try:
-                os.chdir(repo_path)
+            for repo in repos:
+                repo_path = os.path.abspath(repo)  # Get absolute path
+                print(f"\nCommits in {repo_path}:")
                 
-                # Get commits for this repository
-                cmd = f"git log --all --author={username} --since='{date} 00:00:00' --until='{date} 23:59:59' --pretty=format:'%h - %an, %ar : %s'"
-                result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
-                if(len(result.stdout)>0):
-                    commit_message = result.stdout.split(':')[1].strip()
-                    print(commit_message)
+                try:
+                    os.chdir(repo_path)
+                    
+                    # Get commits for this repository
+                    cmd = f"git log --all --author={username} --since='{date} 00:00:00' --until='{date} 23:59:59' --pretty=format:'%h - %an, %ar : %s'"
+                    result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
+
+                    if len(result.stdout) > 0:
+                        commit_message = result.stdout
+                        print(commit_message)
+                        
+                        # Parse commit messages and write to CSV
+                        for line in commit_message.split('\n'):
+                            if ':' in line:
+                                title = line.split(':')[-1].strip()
+                                # Default to 1 hour for each commit
+                                writer.writerow([title, date, 1.0])
                 
-            except FileNotFoundError:
-                print(f"Warning: Could not access repository at {repo_path}")
-                continue
-                
-            finally:
-                # Always return to original directory
-                os.chdir(original_dir)
-            
+                except FileNotFoundError:
+                    print(f"Warning: Could not access repository at {repo_path}")
+                    continue
+                    
+                finally:
+                    # Always return to original directory
+                    os.chdir(original_dir)
+        
+        print(f"\nCSV file generated: {csv_filename}")
+        
     except subprocess.CalledProcessError as e:
         print(f"Error fetching git commits: {e.stderr}")
         sys.exit(1)
