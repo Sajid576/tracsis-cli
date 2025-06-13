@@ -1,5 +1,7 @@
 README.md
+command_handlers.py
 setup.py
+tracsis_api.py
 tracsis_cli.py
 tracsis_cli.egg-info/PKG-INFO
 tracsis_cli.egg-info/SOURCES.txt

@@ -13,7 +13,47 @@ tracsis-cli/
 
 A command-line interface for interacting with the Tracsis API.
 
-## Installation
+## Project Structure
+
+tracsis-cmd/
+├── tracsis_cli.py         # Main CLI script
+├── tracsis_api.py         # API interaction logic
+├── command_handlers.py    # Command handlers for CLI
+├── requirements.txt       # Dependencies
+├── setup.py               # Package setup
+└── README.md              # Documentation
+
+## Building and Installing the CLI Tool
+
+You can build and install the CLI tool globally using setuptools. This allows you to run the `tracsis` command from anywhere on your system.
+
+### 1. Build and Install (All Platforms)
+
+#### Using pip (Recommended)
+
+```bash
+pip install .
+```
+#### macOS/Linux
+You may need to use sudo for global installation
+```bash
+sudo pip install .
+```
+#### Windows
+```bash
+py -m pip install .
+```
+
+To check where the CLI is installed:(Linux/macOS)
+```bash
+which tracsis
+```
+(Windows)
+```bash
+where tracsis
+```
+
+### 2. Install Dependencies
 
 1. Clone/download this project
 2. Install dependencies: `pip install -r requirements.txt`
@@ -22,11 +62,23 @@ A command-line interface for interacting with the Tracsis API.
 ## Usage
 
 ```bash
-# Login to Tracsis API
-python tracsis_cli.py login
+# Firstly, Set credentials only one time
+python tracsis_cli.py set-creds
 
-# Log work and capture screenshot
-python tracsis_cli.py log <task_id> <status>
+# Get task list
+python tracsis_cli.py tasks
+
+# Get logs for a specific task
+python tracsis_cli.py logs <task_id>
+
+# Take screenshot of a task page
+python tracsis_cli.py snap <task_id>
+
+# Fetch git commits for a username
+python tracsis_cli.py genlog <git_username> --path <repo_path>
+
+# Create a new task
+python tracsis_cli.py create-task
 ```
 
 ## Troubleshooting
@@ -38,17 +90,3 @@ python tracsis_cli.py log <task_id> <status>
 3. **Module not found**: Make sure virtual environment is activated and dependencies are installed
 4. **Network errors**: Check internet connection and API endpoint availability
 
-### Testing the Setup:
-
-```bash
-# Check Python version
-python --version
-
-# Check if requests is installed
-python -c "import requests; print(requests.__version__)"
-
-# Test the CLI help
-python tracsis_cli.py --help
-
-# Test the login command
-python tracsis_cli.py login

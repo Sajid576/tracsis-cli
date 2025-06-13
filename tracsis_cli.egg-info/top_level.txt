@@ -1,1 +1,3 @@
+command_handlers
+tracsis_api
 tracsis_cli
